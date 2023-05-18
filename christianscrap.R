@@ -17,10 +17,12 @@ test <- finalData %>%
 
 finalData <- test %>%
   select(business_id, name, address, latitude, longitude, states, stars, average_stars, review_count,
-         total_review_count, count, is_chain, Style, Region, RestaurantsReservations, RestaurantsDelivery, 
+         total_review_count, count, is_chain, Region, RestaurantsReservations, RestaurantsDelivery, 
          HappyHour, RestaurantsTakeOut, OutdoorSeating, BusinessAcceptsCreditCards, DriveThru, Open24Hours, 
          DogsAllowed, Alcohol, RestaurantsTableService, RestaurantsGoodForGroups, Monday, Tuesday, Wednesday, 
          Thursday, Friday, Saturday, Sunday)
+
+write.csv(finalData, "resturauntsWithRegions.csv")
 
 yelpData <- finalData %>%
   filter(Style != 'Undefined' 

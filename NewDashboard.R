@@ -23,8 +23,7 @@ library(circlepackeR)
 
 # data loading
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-finalData <- read.csv("Data/restaurantDataVisProjData.csv")
-stylesData <- read.csv("Data/Food_Origins.csv")
+finalData <- read.csv("Data/resturauntsWithRegions.csv")
 
 # region MAIN MAP DATA FORMATTING
 ## pointsDF: A data.frame whose first column contains longitudes and
@@ -60,34 +59,16 @@ unique_business_states <- finalData %>%
 # endregion
 
 # region CIRCLE PACKING DATA FORMATTING
-stylesData <- stylesData %>%
-    rename_with(.cols = 1, ~"business_id")
-
-test <- finalData %>%
-    left_join(stylesData, join_by("business_id"))
-
 unique_attributes <- colnames(finalData)[15:26]
 
-finalData <- test %>%
-    select(
-        business_id, name, address, latitude, longitude, states, stars, average_stars, review_count,
-        total_review_count, count, is_chain, Style, Region, RestaurantsReservations, RestaurantsDelivery,
-        HappyHour, RestaurantsTakeOut, OutdoorSeating, BusinessAcceptsCreditCards, DriveThru, Open24Hours,
-        DogsAllowed, Alcohol, RestaurantsTableService, RestaurantsGoodForGroups, Monday, Tuesday, Wednesday,
-        Thursday, Friday, Saturday, Sunday
-    )
-
 yelpCircle <- yelpData <- finalData %>%
-  filter(Style != 'Undefined' 
-         & Region != 'Bar' 
-         & Region != 'Coffee/Juice/Tea' 
-         & Style != 'Alcohol' 
-         & Style != 'NonAlcoholicDrinks') %>%
-  dplyr::select(stars, Region, Style, review_count) %>%
+  filter(Region != 'Bar' 
+         & Region != 'Coffee/Juice/Tea') %>%
+  dplyr::select(stars, Region, review_count) %>%
   droplevels() 
 
 # Change the format. This use the data.tree library. This library needs a column that looks like root/group/subgroup/
-yelpCircle$pathString <- paste("Resturaunt Ratings", yelpCircle$stars, yelpCircle$Region, yelpCircle$Style, sep = "/")
+yelpCircle$pathString <- paste("Resturaunt Ratings", yelpCircle$stars, yelpCircle$Region, sep = "/")
 resturaunt <- as.Node(yelpCircle)
 # endregion
 

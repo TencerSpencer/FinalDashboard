@@ -51,8 +51,8 @@ latlong2county <- function(pointsDF) {
 # gather entries of [state,county], store them as a list then use purrr to split the list and assign
 # the respective values to big_data
 lat_lon_to_county <- (latlong2county(data.frame(x = big_data$longitude, y = big_data$latitude)))
-big_data$business_state <- purrr::map(strsplit(lat_lon_to_county$state_county, ","), ~ .x[1]) %>% unlist()
-big_data$business_county <- purrr::map(strsplit(lat_lon_to_county$state_county, ","), ~ .x[2]) %>% unlist()
+big_data$business_state <- purrr::map(strsplit(lat_lon_to_county, ","), ~ .x[1]) %>% unlist()
+big_data$business_county <- purrr::map(strsplit(lat_lon_to_county, ","), ~ .x[2]) %>% unlist()
 
 
 # group the data for numerical values

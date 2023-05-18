@@ -1,0 +1,170 @@
+/* Get a fancy font from Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Yusei+Magic&display=swap');
+
+/* main storage area for text, might not be needed*/
+/* important is overused here because bootstrap and inline style provided by shiny need to be overwritten */
+
+/* initialize global variables */
+:root {
+  --background_color: #474747;
+
+  --heading_font_size: 40px;
+
+  --tab_background_color: #CE93D8;
+  --tab_selected_color: #6A1B9A;
+  --tab_selected_border: #060606;
+  --inner_side_tab_color: #E1BEE7;
+
+  --default_text_color: rgb(0, 0, 0);
+
+  /* the 12.5vw is the lhs and rhs sides */
+  /* and is calulated from entire_tab_width/2 */
+  --overall_body_margin: 40px 12.5vw;
+  --overall_font_size: x-large;
+  --overall_font_weight: bold;
+  
+  --entire_tab_width: calc(75vw);
+  --entire_tab_height: calc(90vh - 80px);
+
+  --left_hand_side_element_width: 300px;
+  --left_hand_size_element_max_width: 300px;
+
+  --explanation_text_size: medium; 
+  --explanation_box_color: rgb(255, 255, 255);
+
+  --title_to_first_box_margin: 50px;
+}
+
+body {
+  background-color: var(--background_color);
+  margin: var(--overall_body_margin);
+}
+
+
+/* might be unused */
+/* Change header text to imported font */
+h2 {
+  font-size: var(--heading_font_size);
+  color: #f6f6f6;
+  font-weight: var(--overall_font_weight);
+  width:var(--entire_tab_width);
+  display: flex;
+  justify-content: center;
+}
+
+/* main display */
+.shiny-input-container {
+  background-color: var(--inner_side_tab_color);
+  color: var(--default_text_color);
+  font-size: var(--overall_font_size);
+}
+
+/* element containing text on all tabs */
+a {
+  color: var(--default_text_color) !important;
+  font-weight: var(--overall_font_weight);
+  outline: 6px solid transparent !important;
+}
+
+/* Navigation tabs above, remove the pesky border below */
+.nav-tabs {
+  margin-top: 25px;
+  border-bottom: 0 !important;
+  width: var(--entire_tab_width);
+  display: flex;
+  justify-content: center;
+}
+
+/* CSS for the clickable tabs, all but the selected */
+.nav-tabs > li {
+  background: var(--tab_background_color);
+  color: var(--default_text_color);
+  font-size: var(--overall_font_size);
+  z-index: 1; /* we want all tabs to be infront of everything */
+  display: flex;
+  justify-content: center;
+}
+
+/* active tab square CSS */
+.nav-tabs > li.active {
+  color: var(--tab_selected_color);
+  outline: 6px solid var(--tab_selected_border) !important;
+  z-index: 2; /* the activated tab ought to be pushed to the front */ 
+} 
+
+/* tab pane */
+.tab-content > .active {
+  display: flex;
+  /* flex-direction: column; */
+  width: var(--entire_tab_width) !important;
+  height: var(--entire_tab_height) !important;
+}
+
+/* Property map lefthand side panel */
+#side-panel-income, #side-panel-property, #event-rate-per-county {
+  display: flex !important;
+  flex-flow: column !important;
+  width: var(--left_hand_side_element_width) !important;
+  max-width: var(--left_hand_size_element_max_width) !important;
+  margin-top: var(--title_to_first_box_margin) !important
+}
+
+/* individual maps clumped together */
+#income_map, #avg_prop_save_price_map, #event_rate_map {
+  width: var(--entire_tab_width) !important;
+  height: var(--entire_tab_height) !important; 
+  background: var(--background_color);
+}
+
+/* get rid of the leaftlet button */
+.leaflet-control-attribution {
+  display: none;
+}
+
+/* */
+#side-panel-income > div:nth-child(1) > form:nth-child(1) {
+  font-size: x-large;
+}
+
+/* the overall box that holds the dropdown */
+#side-panel-income > div:nth-child(1) {
+  padding: 0 15px;
+}
+
+/* adjust the dropdown box */
+#side-panel-income > div:nth-child(2) > div:nth-child(2) {
+  padding-right: 0px;
+  padding-left: 0px;
+}
+
+/* adjust label text on income map */
+#dropDownIncome-label {
+  padding: 15px
+}
+
+/* This previously had a media query, I'm essentially overriding it because why not */
+/* Text box adjustments */
+.col-sm-4 {
+  width: var(--left_hand_side_element_width) !important;
+  max-width: var(--left_hand_size_element_max_width) !important;
+  color: var(--default_text_color); /* text color */
+  padding-top: 20px;
+  padding-left: 0px !important;
+  padding-right: 0px !important;
+  font-size: var(--explanation_text_size);
+}
+
+/* pesky explanation text needs more generalization */
+#side-panel-income > div:nth-child(1) > form:nth-child(1) {
+  background-color: var(--explanation_box_color);
+}
+
+/* overwrite the default padding */
+.col-sm-8 {
+  padding: 0;
+}
+
+/* for slider */
+#range-label {
+  padding: 15px;
+}

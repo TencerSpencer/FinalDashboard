@@ -23,7 +23,7 @@ library(circlepackeR)
 
 # data loading
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
-finalData <- read.csv("Data/resturauntsWithRegions.csv")
+finalData <- read.csv("Data/restaurantsWithRegions.csv")
 
 # region MAIN MAP DATA FORMATTING
 ## pointsDF: A data.frame whose first column contains longitudes and
@@ -64,12 +64,12 @@ unique_attributes <- colnames(finalData)[15:26]
 yelpCircle <- yelpData <- finalData %>%
   filter(Region != 'Bar' 
          & Region != 'Coffee/Juice/Tea') %>%
-  dplyr::select(stars, Region, review_count) %>%
+  dplyr::select(stars, Region, Style, review_count) %>%
   droplevels() 
 
 # Change the format. This use the data.tree library. This library needs a column that looks like root/group/subgroup/
-yelpCircle$pathString <- paste("Resturaunt Ratings", yelpCircle$stars, yelpCircle$Region, sep = "/")
-resturaunt <- as.Node(yelpCircle)
+yelpCircle$pathString <- paste("Resturaunt Ratings", yelpCircle$stars, yelpCircle$Region, yelpCircle$Style, sep = "/")
+restaurant <- as.Node(yelpCircle)
 # endregion
 
 ui <- dashboardPage(
@@ -140,7 +140,7 @@ ui <- dashboardPage(
 
 server <- function(input, output) {
     output$packedCircle <- renderSunburst({
-      circlepackeR(resturaunt, size = "review_count", color_min = "hsl(56,80%,80%)", color_max = "hsl(341,30%,40%)")
+      circlepackeR(restaurant, size = "review_count", color_min = "hsl(56,80%,80%)", color_max = "hsl(341,30%,40%)")
     })
 
     observe({

@@ -24,8 +24,7 @@ library(circlepackeR)
 # data loading
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
 
-finalData <- read.csv("Data/restaurantDataVisProjData.csv")
-stylesData <- read.csv("Data/Food_Origins.csv")
+finalData <- read.csv("Data/restaurantsWithRegions.csv")
 
 # region MAIN MAP DATA FORMATTING
 ## pointsDF: A data.frame whose first column contains longitudes and

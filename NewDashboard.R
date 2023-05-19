@@ -62,6 +62,12 @@ unique_business_states <- finalData %>%
 
 # region CIRCLE PACKING DATA FORMATTING
 unique_attributes <- colnames(finalData)[15:26]
+unique_styles <- finalData %>%
+    select(Style) %>%
+    filter(Style != 'Undefined') %>%
+    filter(!is.na(Style)) %>%
+    as.list()
+unique_styles <- c("None", unlist(unique_styles$Style))
 
 yelpCircle <- yelpData <- finalData %>%
   filter(Region != 'Bar' 
@@ -97,7 +103,7 @@ ui <- dashboardPage(
                 fluidRow(
                     box(
                         column(
-                            width = 5,
+                            width = 4,
                             wellPanel(
                                 selectInput(
                                     inputId = "stateSelectInput",
@@ -112,17 +118,44 @@ ui <- dashboardPage(
                                     value = c(0, 5),
                                     step = 0.1
                                 ),
-                                checkboxGroupInput(
-                                    inputId = "attributesCheckboxes",
-                                    label = "customize desired attributes",
-                                    choices = unique_attributes,
-                                    selected = unique_attributes
+                            )
+                        ),
+                        column(
+                            width = 5,
+                            selectInput(
+                                inputId = "filterByAttribute",
+                                label = "filter by attribute",
+                                choices = c("false", "true")
+                            ),
+                            selectInput(
+                                inputId = "filterByChainOrNot",
+                                label = "choose to search for a chain or not, or both",
+                                choices = c("both", "yes", "no")
+                            ),
+                            selectInput(
+                                input = "filterByStyle",
+                                label = "choose to search by style",
+                                choices = unique_styles
+
+                            )
+                        ),
+                        column(
+                            width = 5,
+                            conditionalPanel(
+                                condition = "input.filterByAttribute == 'true'",
+                                wellPanel (
+                                    checkboxGroupInput(
+                                        inputId = "attributesCheckboxes",
+                                        label = "customize desired attributes",
+                                        choices = unique_attributes,
+                                        selected = c()
+                                    )
                                 )
                             )
                         )
                     ),
-                    leafletOutput("resturant", height = 600)
-                ),
+                    leafletOutput("resturant", height = 1200)
+                )
             ),
             # Second tab content
             tabItem(
@@ -146,37 +179,55 @@ server <- function(input, output) {
     })
 
     observe({
-
-        print(input$attributesCheckboxes)
-
         min_stars <- input$averageStarsSlider[1]
         max_stars <- input$averageStarsSlider[2]
 
         finalData$business_state <- lonlat_to_state(data.frame(x = finalData$longitude, y = finalData$latitude))
-        state_data <- finalData %>%
+        finalData <- finalData %>%
             filter(business_state == input$stateSelectInput) %>%
-            filter(average_stars >= min_stars & average_stars <= max_stars) %>%
-            filter(RestaurantsReservations == ("RestaurantsReservations" %in% input$attributesCheckboxes)) %>%
-            filter(RestaurantsDelivery == ("RestaurantsDelivery" %in% input$attributesCheckboxes)) %>%
-            filter(HappyHour == ("HappyHour" %in% input$attributesCheckboxes == TRUE))
+            filter(average_stars >= min_stars & average_stars <= max_stars)
 
-            # make attribute mode some sort of toggle or have to manually add them to the list
+        if (input$filterByAttribute == "true") {
+            finalData <- finalData %>%
+                filter(RestaurantsReservations == ("RestaurantsReservations" %in% input$attributesCheckboxes == TRUE)) %>%
+                filter(RestaurantsDelivery == ("RestaurantsDelivery" %in% input$attributesCheckboxes == TRUE)) %>%
+                filter(HappyHour == ("HappyHour" %in% input$attributesCheckboxes == TRUE)) %>%
+                filter(RestaurantsTakeOut == ("RestaurantsTakeOut" %in% input$attributesCheckboxes == TRUE)) %>%
+                filter(OutdoorSeating == ("OutdoorSeating" %in% input$attributesCheckboxes == TRUE)) %>%
+                filter(BusinessAcceptsCreditCards == ("BusinessAcceptsCreditCards" %in% input$attributesCheckboxes == TRUE)) %>%
+                filter(Open24Hours == ("Open24Hours" %in% input$attributesCheckboxes == TRUE)) %>%
+                filter(Alcohol == ("Alcohol" %in% input$attributesCheckboxes == TRUE)) %>%
+                filter(DriveThru == ("DriveThru" %in% input$attributesCheckboxes == TRUE)) %>%
+                filter(DogsAllowed == ("DogsAllowed" %in% input$attributesCheckboxes == TRUE)) %>%
+                filter(RestaurantsTableService == ("RestaurantsTableService" %in% input$attributesCheckboxes == TRUE)) %>%
+                filter(RestaurantsGoodForGroups == ("RestaurantsGoodForGroups" %in% input$attributesCheckboxes == TRUE))
+        }
+        if (input$filterByChainOrNot == "yes" | input$filterByChainOrNot == "no") {
+            finalData <- finalData %>%
+                filter(is_chain == input$filterByChainOrNot)
+        } 
+        if (input$filterByStyle != "None") {
+            finalData <- finalData %>%
+                filter(Style == input$filterByStyle)
+        }
 
         state_geojson <- subset(states, NAME == input$stateSelectInput)
 
-        output$resturant <- renderLeaflet({
-            leaflet(data = state_data, options = leafletOptions(preferCanvas = TRUE)) %>%
-                addProviderTiles(providers$CartoDB.PositronNoLabels, options = providerTileOptions(
-                    updateWhenZooming = FALSE,
-                    updateWhenIdle = FALSE,
-                )) %>%
-                setView(lng = -96.25, lat = 39.50, zoom = 4) %>%
-                addPolygons(
-                    data = state_geojson,
-                    weight = 1
-                ) %>%
-                addMarkers(~longitude, ~latitude, clusterOptions = markerClusterOptions(maxClusterRadius = 20), label = state_data$name)
-        })
+        if (length(row.names(finalData)) != 0) {
+            output$resturant <- renderLeaflet({
+                leaflet(data = finalData, options = leafletOptions(preferCanvas = TRUE)) %>%
+                    addProviderTiles(providers$CartoDB.PositronNoLabels, options = providerTileOptions(
+                        updateWhenZooming = FALSE,
+                        updateWhenIdle = FALSE,
+                    )) %>%
+                    setView(lng = -96.25, lat = 39.50, zoom = 4) %>%
+                    addPolygons(
+                        data = state_geojson,
+                        weight = 1
+                    ) %>%
+                    addMarkers(~longitude, ~latitude, clusterOptions = markerClusterOptions(maxClusterRadius = 20), label = finalData$name)
+            })
+        }
     })
 }
 

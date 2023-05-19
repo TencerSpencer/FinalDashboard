@@ -20,6 +20,7 @@ library(data.tree)
 library(hrbrthemes)
 devtools::install_github("jeromefroe/circlepackeR")
 library(circlepackeR)   
+library(rsconnect)
 
 # data loading
 setwd(dirname(rstudioapi::getActiveDocumentContext()$path))

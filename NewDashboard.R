@@ -15,10 +15,15 @@ library(spData)
 library(sp)
 library(maps)
 library(maptools)
+# Circle packing specific libraries
+library(data.tree)
+library(hrbrthemes)
+devtools::install_github("jeromefroe/circlepackeR")
+library(circlepackeR)   
 
 # data loading
-finalData <- read.csv("Data/restaurantDataVisProjData.csv")
-stylesData <- read.csv("Data/Food_Origins.csv")
+setwd(dirname(rstudioapi::getActiveDocumentContext()$path))
+finalData <- read.csv("Data/restaurantsWithRegions.csv")
 
 # region MAIN MAP DATA FORMATTING
 ## pointsDF: A data.frame whose first column contains longitudes and
@@ -53,33 +58,18 @@ unique_business_states <- finalData %>%
     filter(!is.na(business_state))
 # endregion
 
-# region SUNBURST DATA FORMATTING
-stylesData <- stylesData %>%
-    rename_with(.cols = 1, ~"business_id")
-
-test <- finalData %>%
-    left_join(stylesData, join_by("business_id"))
-
+# region CIRCLE PACKING DATA FORMATTING
 unique_attributes <- colnames(finalData)[15:26]
 
-finalData <- test %>%
-    select(
-        business_id, name, address, latitude, longitude, states, stars, average_stars, review_count,
-        total_review_count, count, is_chain, Style, Region, RestaurantsReservations, RestaurantsDelivery,
-        HappyHour, RestaurantsTakeOut, OutdoorSeating, BusinessAcceptsCreditCards, DriveThru, Open24Hours,
-        DogsAllowed, Alcohol, RestaurantsTableService, RestaurantsGoodForGroups, Monday, Tuesday, Wednesday,
-        Thursday, Friday, Saturday, Sunday
-    )
+yelpCircle <- yelpData <- finalData %>%
+  filter(Region != 'Bar' 
+         & Region != 'Coffee/Juice/Tea') %>%
+  dplyr::select(stars, Region, Style, review_count) %>%
+  droplevels() 
 
-yelpData <- finalData %>%
-    filter(Style != "Undefined" &
-        Region != "Bar" &
-        Region != "Coffee/Juice/Tea" &
-        Style != "Alcohol" &
-        Style != "NonAlcoholicDrinks") %>%
-    mutate(stars = floor(stars)) %>%
-    mutate(path = paste(stars, Region, Style, Style, sep = "-")) %>%
-    dplyr::select(path, stars)
+# Change the format. This use the data.tree library. This library needs a column that looks like root/group/subgroup/
+yelpCircle$pathString <- paste("Resturaunt Ratings", yelpCircle$stars, yelpCircle$Region, yelpCircle$Style, sep = "/")
+restaurant <- as.Node(yelpCircle)
 # endregion
 
 ui <- dashboardPage(
@@ -135,9 +125,13 @@ ui <- dashboardPage(
             # Second tab content
             tabItem(
                 tabName = "food_origin",
-                h2("Most middle rated resturants are of North American Type"),
+                h2("What is a star rating's most popular food origin"),
                 fluidRow(
-                    box(sunburstOutput("sunburst"), height = 800, width = 600)
+                  box(circlepackeROutput("packedCircle", width = "100%", height = "1000px"),
+                      height = 1000,
+                      width = 600,
+                      maximizable = T,
+                      align = "center")
                 )
             )
         )
@@ -145,8 +139,8 @@ ui <- dashboardPage(
 )
 
 server <- function(input, output) {
-    output$sunburst <- renderSunburst({
-        sunburst(yelpData, legend = TRUE)
+    output$packedCircle <- renderSunburst({
+      circlepackeR(restaurant, size = "review_count", color_min = "hsl(56,80%,80%)", color_max = "hsl(341,30%,40%)")
     })
 
     observe({

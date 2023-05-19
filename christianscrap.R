@@ -17,10 +17,12 @@ test <- finalData %>%
 
 finalData <- test %>%
   select(business_id, name, address, latitude, longitude, states, stars, average_stars, review_count,
-         total_review_count, count, is_chain, Style, Region, RestaurantsReservations, RestaurantsDelivery, 
+         total_review_count, count, is_chain, Region, RestaurantsReservations, RestaurantsDelivery, 
          HappyHour, RestaurantsTakeOut, OutdoorSeating, BusinessAcceptsCreditCards, DriveThru, Open24Hours, 
          DogsAllowed, Alcohol, RestaurantsTableService, RestaurantsGoodForGroups, Monday, Tuesday, Wednesday, 
          Thursday, Friday, Saturday, Sunday)
+
+write.csv(finalData, "resturauntsWithRegions.csv")
 
 yelpData <- finalData %>%
   filter(Style != 'Undefined' 
@@ -34,3 +36,32 @@ yelpData <- finalData %>%
 
 y <- sunburst(yelpData, legend=TRUE)
 y
+
+
+
+### CIRCULAR PACKING
+# Libraries
+library(tidyverse)
+library(hrbrthemes)
+devtools::install_github("jeromefroe/circlepackeR")
+library(circlepackeR)         
+
+
+yelpCircle <- yelpData <- finalData %>%
+  filter(Style != 'Undefined' 
+         & Region != 'Bar' 
+         & Region != 'Coffee/Juice/Tea' 
+         & Style != 'Alcohol' 
+         & Style != 'NonAlcoholicDrinks') %>%
+  dplyr::select(stars, Region, Style, review_count) %>%
+  droplevels() 
+
+# Change the format. This use the data.tree library. This library needs a column that looks like root/group/subgroup/
+library(data.tree)
+
+yelpCircle$pathString <- paste("Resturaunt Ratings", yelpCircle$stars, yelpCircle$Region, yelpCircle$Style, sep = "/")
+resturaunt <- as.Node(yelpCircle)
+
+# You can custom the minimum and maximum value of the color range.
+
+circlepackeR(resturaunt, size = "review_count", color_min = "hsl(56,80%,80%)", color_max = "hsl(341,30%,40%)")
